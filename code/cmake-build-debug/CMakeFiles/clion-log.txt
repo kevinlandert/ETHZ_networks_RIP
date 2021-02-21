@@ -1,0 +1,30 @@
+/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/Users/kevinlandert/Documents/Ausbildung/ETHZ/FS18/Computer Networks/Projects/handout/code"
+-- The C compiler identification is unknown
+-- The CXX compiler identification is unknown
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- broken
+CMake Error at /Applications/CLion.app/Contents/bin/cmake/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake:52 (message):
+  The C compiler
+
+    "/usr/bin/cc"
+
+  is not able to compile a simple test program.
+
+  It fails with the following output:
+
+    Change Dir: /Users/kevinlandert/Documents/Ausbildung/ETHZ/FS18/Computer Networks/Projects/handout/code/cmake-build-debug/CMakeFiles/CMakeTmp
+    
+    Run Build Command:"/usr/bin/make" "cmTC_7a9c0/fast"
+    xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools), missing xcrun at: /Library/Developer/CommandLineTools/usr/bin/xcrun
+    
+
+  
+
+  CMake will not be able to correctly generate this project.
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/Users/kevinlandert/Documents/Ausbildung/ETHZ/FS18/Computer Networks/Projects/handout/code/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/Users/kevinlandert/Documents/Ausbildung/ETHZ/FS18/Computer Networks/Projects/handout/code/cmake-build-debug/CMakeFiles/CMakeError.log".

@@ -1,0 +1,102 @@
+I) Overview
+
+This code will be responsible for maintaining the dynamic routing table and
+communicating over the dynamic routing protocol with other routers.
+
+The rest of the router is provided as the "dr" binary.  This binary relies on an API provided by a shared
+library to handle dynamic routing. This implementation has the following functions:
+
+
+  safe_dr_get_next_hop(ip) -- This method is called when the router needs to
+    know how to route a packet.  This method simply returns which interface the
+    packet should be sent out of and the IP address of the next hop.
+
+  safe_dr_handle_packet(...) -- This method is called whenever the router
+    receives a dynamic routing packet.  Based on the contents of the packet, the
+    method might update the student's dynamic routing table and/or send out new
+    routing packets of its own.
+
+  safe_dr_handle_periodic() -- This method is called at a regular interval by
+    the router.  The method should make any updates which are required based on
+    the passage of time (perhaps expire entries in the routing table or send out
+    dynamic routing packets).
+
+  safe_dr_interface_changed(intf, state_changed, cost_changed) -- This method is
+    called whenever an interface is is changed in terms of whether it is enabled
+    or its cost to send a packet.  The state_changed and cost_changed parameters
+    are boolean flags which indicate whether the state or cost was changed.
+
+  dr_init -- This method may be used to initialize any internal data structures
+    (like a dynamic routing table).  It will be called before any of the
+    previous methods are called.
+
+The functions prefixed by "safe_" are called by wrapper functions of the same
+name (minus the "safe_" part).  Those wrapper functions simply provide
+synchronization at a coarse level so you do not have to worry about
+synchronization issues.
+
+Three helper functions are provided for students by the dr binary:
+
+  dr_interface_count() -- This methods simply returns the number of interfaces
+    attached to the router.  This will not change while the router is running.
+
+  dr_get_interface(index) -- This method gets a *copy* of the information
+    associated with the interface specified by index.  This includes the
+    interface's IP address, subnet mask, whether it is on, and the cost to
+    transmit over the interface.  Any of these values may change over time.  The
+    value of index should be between 0 (inclusive) and dr_interface_count()
+    (exclusive).
+
+  dr_send_payload -- This method is used to send a dynamic routing packet.  Only
+    the payload of the packet should be sent (e.g. it should be in the same
+    format as received by dr_handle_packet - do not wrap it in a UDP or any
+    other header).  Hint: You have to specify IPs for both the ultimate
+    destination and the next hop on the way to that destination; dyanmic routing
+    advertisements will therefore make these two the same since it is only
+    sending packets to a special IP.
+
+The implementation provides acoarse locking structure which acquires a 
+lock when the function starts andreleases it when it is done to avoid threading issues. 
+
+--------------------------------------------------------------------------------
+II) Running the assignment
+
+The lab consists of three parts.  The routers (dr instances) and the library
+which implements the dynamic routing API (libdr.so) were already discussed.  The
+third component is the lvns binary.  lvns is a server which manages the topology
+and plumbs together nodes in the topology.  It also listens on standard in for
+commands to change the topology -- run the "help" command for a list of
+available commands and how to use them.
+
+To run the lab, first start the lvns server.  You can optionally tell it an
+initial topology to create by specifying the -t switch:
+
+  ./lvns -t simple.topo
+
+Next, you need to start each dr instance (one for each router in the topology).
+If the server is running on the same machine as the dr instance, then you can
+start a router which takes control of a node named "dr1" like this:
+
+  ./dr -v dr1
+
+The lvns server creates a .port file which says which port it is listening on.
+The dr instance reads that file to determine which port to listen on.  If you
+are running dr from a separate location you'll want to specify the server's
+address and port explicitly (using whatever port number the server is actually
+running on):
+
+  ./dr -v dr1 -s mysrv.inf.ethz.ch -p 9999
+
+Once you have a dr instance attached to each node in the topology, you can enter
+commands to lvns to change the cost of transmitting over certain links or take
+links up and down.  You can then query your routers using the lvns route command
+to see if your routers have appropriately updated their routing tables:
+
+   lvns> cost set link 10.0.0.0 10.0.0.1 5  # set the cost of a link to 5
+   lvns> link del 10.0.0.0 10.0.0.1        # delete a link
+   lvns> route get dr1 10.0.0.2           # ask dr1 how it would get to 10.0.0.2
+
+   Important note: A next-hop IP of 0.0.0.0 indicates that the next hop is the
+     ultimate destination.  For example, if the router was asked how to route to
+     the subnet 192.168.1.0/24 and it was directly connected to that subnet,
+     then it ought to respond with 0.0.0.0 as the next-hop IP.
